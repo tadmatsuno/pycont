@@ -79,13 +79,13 @@ class ContinuumFit:
 
   def _sigmaclip(self,xx,yy,use_flag,yfit,grow,low_rej,high_rej):
     ynorm = yy/yfit
-    ystd = np.std(ynorm[use_flag]-1.0,ddof=1)
+    ystd = np.nanstd(ynorm[use_flag]-1.0,ddof=1)
     outside = ((ynorm-1.0) < (-ystd*low_rej)) | ((ynorm-1.0) > (ystd*high_rej))
     xoutside = xx[outside]
     xoutside = xoutside.repeat(len(xx)).reshape(len(xoutside),len(xx))
     removemask = np.any(((xoutside-grow)<xx)&(xx<(xoutside+grow)),axis=0)
-    removemask[0] = False
-    removemask[-1] = False
+    removemask[np.min(np.nonzero(use_flag))] = False
+    removemask[np.max(np.nonzero(use_flag))] = False
     return removemask
 
   def _spline3fit(self,xx,yy,dx_knots):
