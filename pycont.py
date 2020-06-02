@@ -13,6 +13,7 @@ from pyqtcontinuum import Ui_Dialog
 from scipy.interpolate import splev,splrep
 matplotlib.use('Qt5Agg')
 import myspec_utils as utils
+from astropy.table import Table
 
 print(utils)
 
@@ -248,6 +249,35 @@ class MainWindow(QWidget,Ui_Dialog):
       self.output = output 
     if not output_multi_head is None:
       self.output_multi_head  = output_multi_head
+  
+  def input_long1d(self,long1d_wavelength,long1d_flux,\
+      wvl_block=100.,wvl_overlap=20.,output=None):
+    wvl_range =np.max(long1d_wavelength)-np.min(long1d_wavelength) 
+    if wvl_range < wvl_block:
+      self.input_data(self,long1d_wavelength,long1d_flux,output=output)
+    self.long1d_wavelength = long1d_wavelength
+    self.long1d_flux = long1d_flux
+    nblock = int((wvl_range - wvl_overlap) // (wvl_block-wvl_overlap)) + 1
+    wvl_block = (wvl_range - wvl_overlap) / nblock + wvl_overlap
+    ws = np.arange(np.min(long1d_wavelength),\
+      np.max(long1d_wavelength)-(wvl_block-wvl_overlap),
+      wvl_block-wvl_overlap)[:-1]
+    wf = np.arange(np.max(long1d_wavelength),\
+      np.min(long1d_wavelength)+(wvl_block-wvl_overlap),\
+      -(wvl_block-wvl_overlap))[::-1]
+    #print(ws,wf)
+    multi_wavelength = [ \
+      long1d_wavelength[(wws<long1d_wavelength)&(long1d_wavelength<wwf)] \
+      for wws,wwf in zip(ws,wf)\
+      ]
+    multi_flux = [ \
+      long1d_flux[(wws<long1d_wavelength)&(long1d_wavelength<wwf)] \
+      for wws,wwf in zip(ws,wf)\
+      ]
+    self.n_overlap = [np.sum(multi_wavelength[ii]>multi_wavelength[ii+1][0]) for ii in range(len(ws)-1)]
+    self.input_multi_data(multi_wavelength,multi_flux,output_multi_head=None,output=None)
+    if not output is None:
+      self.output = output 
 
   def input_data(self,wavelength,flux,output=None):
     self.wavelength = wavelength
@@ -402,6 +432,36 @@ class MainWindow(QWidget,Ui_Dialog):
     np.savetxt(self.output,\
       np.array([wvl1d,flx1d/blaze1d]).T,fmt='%12.6f')
 
+  def long1d_done(self,output):
+    fweight = lambda n: np.where(np.arange(0,n)<(n/4),0.0,\
+      np.where(np.arange(0,n)>(3.0*n/4),1.0,\
+      (np.arange(0,n)-n/4)*2/n))
+    nblock = len(self.long1d_wavelength)
+    blaze1d = np.zeros(nblock)
+    n1,n2 = 0,0
+    for ii in range(nblock):
+      n1 = n2
+      n2 = n1+len(self.multi_wavelength[ii])
+      if ii == 0:
+        nn = (0,-self.n_overlap[ii])
+      elif ii+1 == nblock:
+        nn = (self.n_overlap[ii-1],-0)
+      else:
+        nn = (self.n_overlap[ii-1],-self.n_overlap[ii])
+      blaze1d[n1+nn[0]:n2+nn[1]] = \
+        self.multi_blaze[ii][nn[0]:len(self.multi_wavelength[ii])+nn[1]]
+      if ii != 0:
+        blaze1d[n1:n1+nn[0]] = \
+          self.multi_blaze[ii][0:nn[0]]*fweight(nn[0])
+      if ii+1 != nblock:
+        blaze1d[n2+nn[1]:] = \
+          self.multi_blaze[ii][len(self.multi_wavelength[ii])+nn[1]:]*\
+              (1.0-fweight(nn[0]))
+    self.long1d_normalized = self.long1d_flux / blaze1d
+    np.savetxt(output,
+      np.array([self.long1d_wavelength,\
+                self.long1d_normalized]).T,fmt='%12.6f')
+
   def moveon_done(self):
     if len(self.wavelength)!=len(self.CFit.wavelength):
       self.blaze = np.interp(self.wavelength,
@@ -429,13 +489,14 @@ class MainWindow(QWidget,Ui_Dialog):
         self.input_data(\
           self.multi_wavelength[self.current_order],
           self.multi_flux[self.current_order],)
+    elif hasattr(self,'long1d_wavelength'):
+      if hasattr(self,'output'):
+        self.long1d_done(self,self.output)
     else:
       if hasattr(self,'output'):
-        np.savetxt('result.csv',
+        np.savetxt(self.output,
           np.array([self.wavelength,\
-          self.flux,\
-          self.blaze,\
-          self.normalized]).T,fmt='%12.6f')
+                    self.normalized]).T,fmt='%12.6f')
       self.done()
 
   def on_press(self,event):
@@ -550,11 +611,17 @@ if __name__ =='__main__':
   app = QApplication(sys.argv)
   window = MainWindow(dwvl_knots=10.0)
   import readmultispec
-  HD122563B = readmultispec.readmultispec('HD122563R.fits')
+  HD122563R = readmultispec.readmultispec('HD122563R.fits')
   window.input_multi_data(\
-    HD122563B['wavelen'][0:2],HD122563B['flux'][0:2],\
-    output='HD122563Rn_0_2.csv',
+    HD122563R['wavelen'][0:5],HD122563R['flux'][0:5],\
+    output='HD122563Rn_testmulti.csv',
     output_multi_head='HD122563_multi/')
+#  HD122563UVES = Table.read('./HD122563_UVES.fits')
+#  test_region = (6400<HD122563UVES['WAVE'][0])&(HD122563UVES['WAVE'][0]<6800)
+#  window.input_long1d(\
+#    HD122563UVES['WAVE'][0][test_region],HD122563UVES['FLUX'][0][test_region],\
+#    output='HD122563_UVESn_testlong1d.csv')
+#
 
   window.show()
   sys.exit(app.exec_())
