@@ -405,6 +405,12 @@ class MainWindow(QWidget,Ui_Dialog):
         #self.mpl_status = 'u'
         #self.canvas.mode_txt.set_text('Un-sample')
         #self.canvas.draw()
+      elif event.key == 't':
+        print('Clear samples \n')
+        self.CFit.samples = []
+        self.CFit.samples = self.show_selected_region(self.CFit.samples)
+        self.ui.edit_samples.setPlainText(\
+          textsamples(self.CFit.samples))
       elif event.key == 'n':
         self.moveon_done()
     else:
