@@ -13,7 +13,7 @@ from pyqtcontinuum import Ui_Dialog
 from scipy.interpolate import splev,splrep
 matplotlib.use('Qt5Agg')
 import myspec_utils as utils
-from astropy.table import Table
+
 
 print(utils)
 
@@ -610,18 +610,6 @@ class MainWindow(QWidget,Ui_Dialog):
 if __name__ =='__main__':
   app = QApplication(sys.argv)
   window = MainWindow(dwvl_knots=10.0)
-  import readmultispec
-  HD122563R = readmultispec.readmultispec('HD122563R.fits')
-  window.input_multi_data(\
-    HD122563R['wavelen'][0:5],HD122563R['flux'][0:5],\
-    output='HD122563Rn_testmulti.csv',
-    output_multi_head='HD122563_multi/')
-#  HD122563UVES = Table.read('./HD122563_UVES.fits')
-#  test_region = (6400<HD122563UVES['WAVE'][0])&(HD122563UVES['WAVE'][0]<6800)
-#  window.input_long1d(\
-#    HD122563UVES['WAVE'][0][test_region],HD122563UVES['FLUX'][0][test_region],\
-#    output='HD122563_UVESn_testlong1d.csv')
-#
 
   window.show()
   sys.exit(app.exec_())
