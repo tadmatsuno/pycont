@@ -13,219 +13,220 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QPushButton" name="button_fit">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>20</y>
-     <width>75</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Fit</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="button_draw">
-   <property name="geometry">
-    <rect>
-     <x>675</x>
-     <y>20</y>
-     <width>75</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Redraw</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_function">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>60</y>
-     <width>121</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>function</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="edit_function">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>80</y>
-     <width>160</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="edit_knots">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>130</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_knots">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>110</y>
-     <width>121</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>dwvl_knots</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="edit_niter">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>230</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_niter">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>210</y>
-     <width>121</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>n_iterate</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="edit_lowrej">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>180</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_lowrej">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>160</y>
-     <width>60</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>low_rej</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="edit_highrej">
-   <property name="geometry">
-    <rect>
-     <x>675</x>
-     <y>180</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_highrej">
-   <property name="geometry">
-    <rect>
-     <x>675</x>
-     <y>160</y>
-     <width>60</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>high_rej</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="edit_nave">
-   <property name="geometry">
-    <rect>
-     <x>675</x>
-     <y>230</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_nave">
-   <property name="geometry">
-    <rect>
-     <x>675</x>
-     <y>210</y>
-     <width>80</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>n_average</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_samples">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>360</y>
-     <width>121</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>samples</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_grow">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>260</y>
-     <width>70</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>grow</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="edit_grow">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>280</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="mouseTracking">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QPlainTextEdit" name="edit_samples">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>380</y>
-     <width>160</width>
-     <height>120</height>
-    </rect>
-   </property>
-  </widget>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QWidget" name="left_grid" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="main_figure"/>
+    </widget>
+   </item>
+   <item alignment="Qt::AlignRight">
+    <widget class="QWidget" name="right_grid" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>160</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="button_fit">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Fit</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="button_draw">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Redraw</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QLabel" name="label_function">
+        <property name="maximumSize">
+         <size>
+          <width>160</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>function</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QLineEdit" name="edit_function">
+        <property name="maximumSize">
+         <size>
+          <width>160</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QLabel" name="label_knots">
+        <property name="maximumSize">
+         <size>
+          <width>160</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>dwvl_knots</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLineEdit" name="edit_knots">
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_lowrej">
+        <property name="text">
+         <string>low_rej</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLabel" name="label_highrej">
+        <property name="text">
+         <string>high_rej</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLineEdit" name="edit_lowrej">
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLineEdit" name="edit_highrej">
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_niter">
+        <property name="text">
+         <string>n_iterate</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QLabel" name="label_nave">
+        <property name="text">
+         <string>n_average</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLineEdit" name="edit_niter">
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QLineEdit" name="edit_nave">
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="label_grow">
+        <property name="text">
+         <string>grow</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
+       <widget class="QLineEdit" name="edit_grow">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="mouseTracking">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0" colspan="2">
+       <widget class="QLabel" name="label_samples">
+        <property name="maximumSize">
+         <size>
+          <width>160</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>samples</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0" colspan="2">
+       <widget class="QPlainTextEdit" name="edit_samples">
+        <property name="maximumSize">
+         <size>
+          <width>160</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
