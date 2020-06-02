@@ -413,6 +413,10 @@ class MainWindow(QWidget,Ui_Dialog):
           textsamples(self.CFit.samples))
       elif event.key == 'n':
         self.moveon_done()
+      elif event.key == 'f':
+        print('Refit')
+        self.CFit.continuum(self.wavelength,self.flux)
+        self.draw_fig()        
     else:
       if event.key=='q':
         if self.mpl_status=='s':
