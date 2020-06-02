@@ -152,10 +152,11 @@ def textsamples(samples,reverse=False):
 
 
 class PlotCanvas(FigureCanvas):
-  def __init__(self,parent=None,width=9,height=8):
-    self.fig,self.axes = plt.subplots(1,1,figsize=(width,height))
+  def __init__(self,parent,layout):
+    self.fig,self.axes = plt.subplots(1,1)
     FigureCanvas.__init__(self,self.fig)
-    self.setParent(parent)
+
+    layout.addWidget(self)
 
     self.line_obs, = self.axes.plot([0],[0],'C7-',lw=0.5)
     self.pt_use, = self.axes.plot([0],[0],'C0o',ms=2.0)
@@ -164,11 +165,10 @@ class PlotCanvas(FigureCanvas):
     self.cursorx = self.axes.axvline(x=0,linestyle='-',color='C7',lw=0.5)
     self.cursory = self.axes.axhline(y=0,linestyle='-',color='C7',lw=0.5)
 
-    FigureCanvas.setSizePolicy(
-      self,
-      QSizePolicy.Expanding,
-      QSizePolicy.Expanding)
-    FigureCanvas.updateGeometry(self)
+    #FigureCanvas.setSizePolicy(
+    #  self,
+    #  QSizePolicy.Expanding,
+    #  QSizePolicy.Expanding)
     self.fig.canvas.mpl_connect('motion_notify_event',self.mouse_move)
     self.txt = self.axes.text(0.0,0.0,'',transform=self.fig.transFigure,
       horizontalalignment='left',verticalalignment='bottom')
@@ -176,6 +176,15 @@ class PlotCanvas(FigureCanvas):
       transform=self.fig.transFigure,
       fontsize='x-large',color='k',
       horizontalalignment='right',verticalalignment='top')
+
+    self.setFocusPolicy(Qt.ClickFocus)
+    self.setFocus()
+    toolbar = NavigationToolbar(self ,parent)
+    layout.addWidget(self.toolbar)
+
+    self.fig.tight_layout()
+    self.updateGeometry()
+  
 
   def mouse_move(self,event):
     x,y = event.xdata,event.ydata
@@ -225,12 +234,11 @@ class MainWindow(QWidget,Ui_Dialog):
     self.ui.edit_samples.setPlainText(\
       textsamples((self.CFit.samples)))
 
-    self.canvas  =  PlotCanvas(self)
-    self.canvas.setFocusPolicy(Qt.ClickFocus)
-    self.canvas.setFocus()
-    toolbar = NavigationToolbar(self.canvas ,self)
-    self.canvas.setGeometry(QRect(30,20,540,480))
-    self.canvas.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
+    self.ui.main_figure.layout
+    self.canvas  =  PlotCanvas(self.ui.left_grid,self.ui.main_figure)
+
+    #self.canvas.setGeometry(QRect(30,20,540,480))
+    #self.canvas.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
     self.mpl_status = None
     self.canvas.mpl_connect('key_press_event',self.on_press)
 #    self.canvas.mpl_connect('pick_event',self.on_pick)
