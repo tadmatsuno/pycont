@@ -11,10 +11,10 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from matplotlib.backend_bases import MouseButton
 from pyqtcontinuum import Ui_Dialog
 from scipy.interpolate import splev,splrep
-
 matplotlib.use('Qt5Agg')
+import myspec_utils as utils
 
-
+print(utils)
 
 class ContinuumFit:
   def __init__(self,func='spline3',dwvl_knots=6.,niterate=10,
@@ -30,7 +30,7 @@ class ContinuumFit:
 
   def continuum(self,wavelength,flux):
     self.wavelength,self.flux = \
-      self._average_nbins(self.naverage,wavelength,flux)
+      utils.average_nbins(self.naverage,wavelength,flux)
     self.use_flag = self._get_region(self.wavelength,self.samples)
     outliers = np.array([False]*len(self.wavelength))
     for ii in range(self.niterate):
@@ -54,22 +54,6 @@ class ContinuumFit:
     self.flx_continuum = y_cont
     self.flx_normalized = self.flux / self.flx_continuum
 
-  def _average_nbins(self,nbin,x,y):
-    if nbin==1:
-      return x,y
-    else:
-      nfin = len(x)//nbin*nbin
-      dx = self._get_dx(x)
-      xx = np.sum([(x*dx)[0+ii:nfin:nbin] for ii in range(nbin)],axis=0)/\
-        np.sum([dx[0+ii:nfin:nbin] for ii in range(nbin)],axis=0)
-      yy = np.sum([(y*dx)[0+ii:nfin:nbin] for ii in range(nbin)],axis=0)/\
-        np.sum([dx[0+ii:nfin:nbin] for ii in range(nbin)],axis=0)
-      return xx,yy
-
-  def _get_dx(self,x):
-    dx1 = x[1:]-x[:-1]
-    dx = np.hstack([dx1[0],dx1[1:]+dx1[:-1],dx1[-1]])
-    return dx
 
   def _get_region(self,x,samples):
     if len(samples)==0:
@@ -194,11 +178,6 @@ class PlotCanvas(FigureCanvas):
       self.txt.set_text('x={0:10.3f}    y={1:10.5f}'.format(x,y))
     self.draw()
 
-
-
-      
-
-
 class MainWindow(QWidget,Ui_Dialog):
   def __init__(self,parent=None,**CFit_kwargs):
     super(MainWindow,self).__init__(parent)
@@ -243,7 +222,7 @@ class MainWindow(QWidget,Ui_Dialog):
     self.canvas.mpl_connect('key_press_event',self.on_press)
 #    self.canvas.mpl_connect('pick_event',self.on_pick)
 
-  def input_multi_data(self,multi_wavelength,multi_flux):
+  def input_multi_data(self,multi_wavelength,multi_flux,output_multi_head=None,output=None):
     try:
       len(multi_wavelength[0])
       pass
@@ -264,9 +243,13 @@ class MainWindow(QWidget,Ui_Dialog):
     self.multi_normalized = []
     self.input_data(\
       self.multi_wavelength[self.current_order],
-      self.multi_flux[self.current_order],)
+      self.multi_flux[self.current_order],output=None)
+    if not output is None:
+      self.output = output 
+    if not output_multi_head is None:
+      self.output_multi_head  = output_multi_head
 
-  def input_data(self,wavelength,flux):
+  def input_data(self,wavelength,flux,output=None):
     self.wavelength = wavelength
     self.flux = flux
     self.CFit.continuum(self.wavelength,self.flux)
@@ -278,6 +261,8 @@ class MainWindow(QWidget,Ui_Dialog):
     self.canvas.axes.set_xlim(getminmax(self.wavelength))
     self.canvas.axes.set_ylim(getminmax(self.flux))
     self.draw_fig()
+    if not output is None:
+      self.output = output
 
   def draw_fig(self):
 
@@ -368,6 +353,55 @@ class MainWindow(QWidget,Ui_Dialog):
       fontsize='xx-large',color='k',
       horizontalalignment='center',verticalalignment='center')
 
+
+  def _sum_2spec(self,x1,y1,x2,y2):
+    try:
+      len(y1[0])
+      pass
+    except:
+      y1 = [y1]
+      y2 = [y2]
+    if x1[0] > x2[0]:
+      x1,x2 = x2,x1
+      y1,y2 = y2,y1
+    if x1[-1]>x2[0]: # Overlap
+        j1 = np.nonzero(x1>x2[0])[0][0]-1
+        j2 = np.nonzero(x2<x1[-1])[0][-1]+1
+        x_mid = np.linspace(x1[j1],x2[j2],
+          int(np.maximum(len(x1)-j1,j2+1)))
+        y_mid = [\
+          utils.rebin(x1[j1:],yy1[j1:],x_mid,conserve_count=True)+\
+          utils.rebin(x2[:j2+1],yy2[:j2+1],x_mid,conserve_count=True) 
+          for yy1,yy2 in zip(y1,y2)]
+
+        xout = np.append(np.append(\
+          x1[:j1],x_mid),
+          x2[j2+1:])
+        yout = [np.append(np.append(\
+          yy1[:j1],yy_mid),
+          yy2[j2+1:]) \
+          for yy1,yy2,yy_mid in zip(y1,y2,y_mid)]
+        return (xout,)+tuple(yout)
+    else: # No overlap
+      xout = np.append(x1,x2)
+      yout = [np.append(yy1,yy2) for yy1,yy2 in zip(y1,y2)]
+      return (xout,)+tuple(yout)
+
+  def multi_done(self,output):
+    wvl1d,flx1d,blaze1d = utils.x_sorted(
+      self.multi_wavelength[0],
+      [self.multi_flux[0],
+      self.multi_blaze[0]])
+    for ii in range(1,self.norder):
+      wvl_ii,flx_ii,blaze_ii = utils.x_sorted(
+        self.multi_wavelength[ii],
+        [self.multi_flux[ii],
+        self.multi_blaze[ii]])
+      wvl1d,flx1d,blaze1d = self._sum_2spec(\
+        wvl1d,[flx1d,blaze1d],wvl_ii,[flx_ii,blaze_ii])
+    np.savetxt(self.output,\
+      np.array([wvl1d,flx1d/blaze1d]).T,fmt='%12.6f')
+
   def moveon_done(self):
     if len(self.wavelength)!=len(self.CFit.wavelength):
       self.blaze = np.interp(self.wavelength,
@@ -379,21 +413,26 @@ class MainWindow(QWidget,Ui_Dialog):
     if hasattr(self,'multi_wavelength'):
       self.multi_blaze.append(self.blaze)        
       self.multi_normalized.append(self.normalized)
-      np.savetxt('result_{0:03d}.csv'.format(self.current_order),
+      if hasattr(self ,'output_multi_head'):
+        np.savetxt(self.output_multi_head+\
+          '{0:03d}details.csv'.format(self.current_order),
         np.array([self.wavelength,\
           self.flux,\
           self.blaze,\
           self.normalized]).T,fmt='%12.6f')
       self.current_order +=1
       if self.current_order == self.norder:
+        if hasattr(self,'output'):
+          self.multi_done(self.output)
         self.done()
       else:
         self.input_data(\
           self.multi_wavelength[self.current_order],
           self.multi_flux[self.current_order],)
     else:
-      np.savetxt('result.csv',
-        np.array([self.wavelength,\
+      if hasattr(self,'output'):
+        np.savetxt('result.csv',
+          np.array([self.wavelength,\
           self.flux,\
           self.blaze,\
           self.normalized]).T,fmt='%12.6f')
@@ -511,8 +550,11 @@ if __name__ =='__main__':
   app = QApplication(sys.argv)
   window = MainWindow(dwvl_knots=10.0)
   import readmultispec
-  HD122563B = readmultispec.readmultispec('HD122563B.fits')
-  window.input_multi_data(HD122563B['wavelen'],HD122563B['flux'])
+  HD122563B = readmultispec.readmultispec('HD122563R.fits')
+  window.input_multi_data(\
+    HD122563B['wavelen'][0:2],HD122563B['flux'][0:2],\
+    output='HD122563Rn_0_2.csv',
+    output_multi_head='HD122563_multi/')
 
   window.show()
   sys.exit(app.exec_())
