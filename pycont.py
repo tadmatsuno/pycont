@@ -9,10 +9,10 @@ from PyQt5.Qt import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backend_bases import MouseButton
-from pyqtcontinuum import Ui_Dialog
+from .pyqtcontinuum import Ui_Dialog
 from scipy.interpolate import splev,splrep
 matplotlib.use('Qt5Agg')
-import myspec_utils as utils
+from . import myspec_utils as utils
 
 
 print(utils)
@@ -262,9 +262,13 @@ class MainWindow(QWidget,Ui_Dialog):
     ws = np.arange(np.min(long1d_wavelength),\
       np.max(long1d_wavelength)-(wvl_block-wvl_overlap),
       wvl_block-wvl_overlap)[:-1]
-    wf = np.arange(np.max(long1d_wavelength),\
-      np.min(long1d_wavelength)+(wvl_block-wvl_overlap),\
-      -(wvl_block-wvl_overlap))[::-1]
+#   wf = np.arange(np.max(long1d_wavelength),\
+#     np.min(long1d_wavelength)+(wvl_block-wvl_overlap),\
+#     -(wvl_block-wvl_overlap))[::-1]
+    wf = ws + wvl_block
+    npt = np.array([np.sum((wws<long1d_wavelength)&(long1d_wavelength<wwf)) for wws,wwf in zip(ws,wf)])
+    ws = ws[npt > 0]
+    wf = wf[npt > 0]
     #print(ws,wf)
     multi_wavelength = [ \
       long1d_wavelength[(wws<long1d_wavelength)&(long1d_wavelength<wwf)] \
