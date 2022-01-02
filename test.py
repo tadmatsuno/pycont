@@ -1,6 +1,9 @@
 from astropy.table import Table
-import readmultispec
 import sys
+from pycont import pycont
+from pycont.pycont import *
+import readmultispec
+
 
 if __name__ == '__main__':
   try:

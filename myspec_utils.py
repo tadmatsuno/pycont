@@ -4,7 +4,7 @@ from scipy.interpolate import splev,splrep,splint
 
 def get_dx(x):
   dx1 = x[1:]-x[:-1]
-  dx = np.hstack([dx1[0],dx1[1:]+dx1[:-1],dx1[-1]])
+  dx = np.hstack([dx1[0],0.5*(dx1[1:]+dx1[:-1]),dx1[-1]])
   return dx
 
 def average_nbins(nbin,x,y):
@@ -22,11 +22,12 @@ def average_nbins(nbin,x,y):
 def rebin(x,y,xnew,conserve_count=True): 
   dx = get_dx(x) 
   dxnew = get_dx(xnew) 
-  if conserve_count: # count conserved (input is per pix)
+  if conserve_count: # total count conserved (input is per pix)
       spl = splrep(x,y/dx,k=1,task=0,s=0) 
       return np.array([splint(xn-0.5*dxn,xn+0.5*dxn,spl) \
         for xn,dxn in zip(xnew,dxnew)]) 
-  else: #flux conserved (input is in physical unit)
+  else: #total flux conserved (input is in physical unit)
+        #use this for normalized spectra
       spl = splrep(x,y,k=1,task=0,s=0) 
       return np.array([splint(xn-0.5*dxn,xn+0.5*dxn,spl)/dxn \
         for xn,dxn in zip(xnew,dxnew)]) 

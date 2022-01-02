@@ -1,5 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+for key in plt.rcParams.keys():
+  if key.startswith('keymap'):
+    [plt.rcParams[key].remove(ss) for ss in plt.rcParams[key]]
 import matplotlib
 import sys
 from PyQt5.QtCore import *
@@ -14,8 +17,6 @@ from scipy.interpolate import splev,splrep
 matplotlib.use('Qt5Agg')
 from . import myspec_utils as utils
 
-
-print(utils)
 
 class ContinuumFit:
   def __init__(self,func='spline3',dwvl_knots=6.,niterate=10,
@@ -64,7 +65,9 @@ class ContinuumFit:
 
   def _sigmaclip(self,xx,yy,use_flag,yfit,grow,low_rej,high_rej):
     ynorm = yy/yfit
-    ystd = np.nanstd(ynorm[use_flag]-1.0,ddof=1)
+    quat = np.sum(use_flag)//4 
+    ystd = np.nanstd(ynorm[use_flag][quat:-quat]-1.0,ddof=1)*\
+           np.sqrt(np.nanmax(yfit)/np.maximum(yfit,1.0e-10))
     outside = ((ynorm-1.0) < (-ystd*low_rej)) | ((ynorm-1.0) > (ystd*high_rej))
     xoutside = xx[outside]
     xoutside = xoutside.repeat(len(xx)).reshape(len(xoutside),len(xx))
@@ -236,6 +239,13 @@ class MainWindow(QWidget,Ui_Dialog):
     npty = np.array([len(fs) for fs in multi_flux])
     if any(nptx!=npty):
       raise ValueError('Wavelength and flux have different numbers of points')
+    
+    wvlidx = np.argsort([np.min(ws) for ws in multi_wavelength])
+    wvl_tmp,multi_wavelength = multi_wavelength,[]
+    flx_tmp,multi_flux = multi_flux,[]
+    for idx in wvlidx:
+      multi_wavelength.append(wvl_tmp[idx])
+      multi_flux.append(flx_tmp[idx])
     self.multi_wavelength = multi_wavelength
     self.multi_flux = multi_flux
     self.norder = len(multi_wavelength)
@@ -372,13 +382,13 @@ class MainWindow(QWidget,Ui_Dialog):
 #            self.ui.edit_samples.setPlainText(\
 #              textsamples(self.CFit.samples))
 #            self._clear_state()
-
   def _clear_state(self):
     if hasattr(self,'tmp_data'):
       delattr(self,'tmp_data')
     self.canvas.mode_txt.set_text('Normal')
     self.mpl_status = None
     self.canvas.draw()
+
 
   def done(self):
     self.canvas.axes.text(0.5,0.5,'Done! \n Close the window',
@@ -435,6 +445,10 @@ class MainWindow(QWidget,Ui_Dialog):
         wvl1d,[flx1d,blaze1d],wvl_ii,[flx_ii,blaze_ii])
     np.savetxt(self.output,\
       np.array([wvl1d,flx1d/blaze1d]).T,fmt='%12.6f')
+    np.savetxt('blaze_'+self.output,\
+      np.array([wvl1d,blaze1d]).T,fmt='%12.6f')
+    np.savetxt('1d_'+self.output,\
+      np.array([wvl1d,flx1d]).T,fmt='%12.6f')
 
   def long1d_done(self,output):
     fweight = lambda n: np.where(np.arange(0,n)<(n/4),0.0,\
@@ -490,6 +504,10 @@ class MainWindow(QWidget,Ui_Dialog):
           self.multi_done(self.output)
         self.done()
       else:
+        self.CFit.samples = []
+        self.CFit.samples = self.show_selected_region(self.CFit.samples)
+        self.ui.edit_samples.setPlainText(\
+          textsamples(self.CFit.samples))
         self.input_data(\
           self.multi_wavelength[self.current_order],
           self.multi_flux[self.current_order],)
@@ -609,6 +627,25 @@ class MainWindow(QWidget,Ui_Dialog):
       elif source is self.ui.button_draw:
         self.draw_fig()
     return QWidget.eventFilter(self, source, event)
+
+def start_gui(wavelength,flux,outfile,form='1d',output_multi_head=None):
+  app = QApplication(sys.argv)
+  window = MainWindow()
+  if form == 'long1d':
+     window.input_long1d(\
+       wavelength,flux,\
+       output=outfile)
+  elif form == 'multi':
+     window.input_multi_data(\
+       wavelength,flux,\
+       output=outfile,\
+       output_multi_head=output_multi_head) 
+  else:
+     window.input_data(\
+       wavelength,flux,\
+       output=outfile)
+  window.show()
+  sys.exit(app.exec_())
 
 
 if __name__ =='__main__':
