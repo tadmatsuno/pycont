@@ -1,6 +1,8 @@
 import numpy as np
+from scipy.interpolate import splev,splrep
+
 import matplotlib.pyplot as plt
-for key in plt.rcParams.keys():
+for key in plt.rcParams.keys(): # To avoid conflicts with default shortcuts, which are all disabled.
   if key.startswith('keymap'):
     [plt.rcParams[key].remove(ss) for ss in plt.rcParams[key]]
 import matplotlib
@@ -13,9 +15,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backend_bases import MouseButton
 from .pyqtcontinuum import Ui_Dialog
-from scipy.interpolate import splev,splrep
 matplotlib.use('Qt5Agg')
-from . import myspec_utils as utils
+
+from . import utils
 
 
 class ContinuumFit:
