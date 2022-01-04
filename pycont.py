@@ -14,10 +14,9 @@ from PyQt5.Qt import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backend_bases import MouseButton
-from .pyqtcontinuum import Ui_Dialog
+from pyqtcontinuum import Ui_Dialog
 matplotlib.use('Qt5Agg')
-
-from . import utils
+import utils
 
 
 class ContinuumFit:
@@ -431,7 +430,7 @@ class MainWindow(QWidget,Ui_Dialog):
     assert len(multi_wavelength)==len(multi_flux),'Wavelengths and fluxs have different numbers of orders'
     nptx = np.array([len(ws) for ws in multi_wavelength])
     npty = np.array([len(fs) for fs in multi_flux])
-    assert all(nptx!=npty),'Wavelength and flux have different numbers of points'
+    assert all(nptx==npty),'Wavelength and flux have different numbers of points'
     
     wvlidx = np.argsort([np.min(ws) for ws in multi_wavelength])### Sort in wavelength
     wvl_tmp,multi_wavelength = multi_wavelength,[]
@@ -487,22 +486,23 @@ class MainWindow(QWidget,Ui_Dialog):
     self.long1d_flux = long1d_flux
     nblock = int((wvl_range - wvl_overlap) // (wvl_block-wvl_overlap)) + 1
     wvl_block = (wvl_range - wvl_overlap) / nblock + wvl_overlap
-    ws = np.linspace(np.min(long1d_wavelength),\
+    ws = np.linspace(np.min(long1d_wavelength)-0.01,\
       np.max(long1d_wavelength) - wvl_overlap,
       nblock+1)[:-1]
     wf = ws + wvl_block
-    npt = np.array([np.sum((wws<long1d_wavelength)&(long1d_wavelength<wwf)) for wws,wwf in zip(ws,wf)])
+    wf[-1] = np.max(long1d_wavelength)+0.01 ## Make sure that the end point is equal to the maximum wavelength
+    npt = np.array([np.sum((wws<=long1d_wavelength)&(long1d_wavelength<wwf)) for wws,wwf in zip(ws,wf)])
     ws = ws[npt > 0]
     wf = wf[npt > 0]
     multi_wavelength = [ \
-      long1d_wavelength[(wws<long1d_wavelength)&(long1d_wavelength<wwf)] \
+      long1d_wavelength[(wws<=long1d_wavelength)&(long1d_wavelength<wwf)] \
       for wws,wwf in zip(ws,wf)\
       ]
     multi_flux = [ \
-      long1d_flux[(wws<long1d_wavelength)&(long1d_wavelength<wwf)] \
+      long1d_flux[(wws<=long1d_wavelength)&(long1d_wavelength<wwf)] \
       for wws,wwf in zip(ws,wf)\
       ]
-    self.n_overlap = [np.sum(multi_wavelength[ii]>multi_wavelength[ii+1][0]) for ii in range(len(ws)-1)]
+    self.n_overlap = [np.sum(multi_wavelength[ii]>=multi_wavelength[ii+1][0]) for ii in range(len(ws)-1)]
     self.input_multi_data(multi_wavelength,multi_flux,output_multi_head=None,output=None)
     if not output is None:
       self.output = output 
@@ -819,10 +819,11 @@ class MainWindow(QWidget,Ui_Dialog):
       (np.arange(0,n)-n/4)*2/n))
       
     nblock = len(self.multi_wavelength)
-    blaze1d = np.zeros(self.long1d_wavelength)
+    blaze1d = np.zeros(len(self.long1d_wavelength))
     n1,n2 = 0,0
+    nn = (0,0)
     for ii in range(nblock):
-      n1 = n2
+      n1 = n2+nn[1]
       n2 = n1+len(self.multi_wavelength[ii])
       if ii == 0:
         nn = (0,-self.n_overlap[ii])
@@ -837,7 +838,7 @@ class MainWindow(QWidget,Ui_Dialog):
         blaze1d[n1:n1+nn[0]] = \
           self.multi_blaze[ii][0:nn[0]]*fweight(nn[0])
       if ii+1 != nblock: ## For region overlapping with next section
-        blaze1d[n2+nn[1]:] = \
+        blaze1d[n2+nn[1]:n2] = \
           self.multi_blaze[ii][len(self.multi_wavelength[ii])+nn[1]:]*\
               (1.0-fweight(np.abs(nn[1])))
     self.long1d_normalized = self.long1d_flux / blaze1d
@@ -871,7 +872,7 @@ class MainWindow(QWidget,Ui_Dialog):
       if self.current_order == self.norder:
         if hasattr(self,'output'):
           if hasattr(self,'long1d_wavelength'):
-            self.long1d_done(self,self.output)
+            self.long1d_done(self.output)
           else:
             self.multi_done(self.output)
         self.done()
