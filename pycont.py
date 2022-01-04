@@ -541,6 +541,8 @@ class MainWindow(QWidget,Ui_Dialog):
             self.canvas.axes.axvspan(x1,x2,facecolor='yellow',alpha=0.3,))
           x1 = x1n
           x2 = x2n
+        elif x2n<x2:
+          continue
         else:
           x2 = x2n
           continue
@@ -614,7 +616,7 @@ class MainWindow(QWidget,Ui_Dialog):
 
     print(event.key)
     if self.mpl_status is None:
-      if event.key=='s':
+      if (event.key=='s') and (not event.xdata is None):
         self.mpl_status = 's'
         self.tmp_data = {'x':event.xdata,
           'lvx1':self.canvas.axes.axvline(event.xdata,color='r',lw=2.)}
@@ -639,7 +641,7 @@ class MainWindow(QWidget,Ui_Dialog):
         self.CFit.continuum(self.wavelength,self.flux)
         self.draw_fig()        
     elif self.mpl_status == 's':
-      if event.key=='s':
+      if (event.key=='s') and (not event.xdata is None):
         x1 = self.tmp_data['x']
         x2 = event.xdata
         self.CFit.samples.append([x1,x2])
@@ -797,6 +799,8 @@ class MainWindow(QWidget,Ui_Dialog):
         self.multi_blaze[ii]])
       wvl1d,flx1d,blaze1d = self._sum_2spec(\
         wvl1d,[flx1d,blaze1d],wvl_ii,[flx_ii,blaze_ii])
+    print('Continuum fitting for a spectrum in multispec format was completed')
+    print(f'The resut is saved as {output}')
     np.savetxt(self.output,\
       np.array([wvl1d,flx1d/blaze1d]).T,fmt='%12.6f')
     np.savetxt('blaze_'+self.output,\
@@ -842,6 +846,8 @@ class MainWindow(QWidget,Ui_Dialog):
           self.multi_blaze[ii][len(self.multi_wavelength[ii])+nn[1]:]*\
               (1.0-fweight(np.abs(nn[1])))
     self.long1d_normalized = self.long1d_flux / blaze1d
+    print('Continuum fitting for a spectrum in long1d format was completed')
+    print(f'The resut is saved as {output}')
     np.savetxt(output,
       np.array([self.long1d_wavelength,\
                 self.long1d_normalized]).T,fmt='%12.6f')
